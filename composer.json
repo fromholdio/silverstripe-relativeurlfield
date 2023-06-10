@@ -1,0 +1,30 @@
+{
+  "name": "fromholdio/silverstripe-relativeurlfield",
+  "type": "silverstripe-vendormodule",
+  "description": "",
+  "license": "BSD-3-Clause",
+  "keywords": ["silverstripe"],
+  "homepage": "https://github.com/fromholdio/silverstripe-relativeurlfield",
+  "support": {
+    "issues": "https://github.com/fromholdio/silverstripe-relativeurlfield/issues"
+  },
+  "authors": [{
+    "name": "Luke Fromhold",
+    "homepage": "https://fromhold.io"
+  }],
+  "require": {
+    "silverstripe/cms": "~4.1 || ~5.0"
+  },
+  "extra": {
+    "expose": [
+      "client"
+    ]
+  },
+  "autoload": {
+    "psr-4": {
+      "Fromholdio\\RelativeURLField\\": "src/"
+    }
+  },
+  "prefer-stable": true,
+  "minimum-stability": "dev"
+}
