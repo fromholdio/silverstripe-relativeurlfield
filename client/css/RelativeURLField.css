@@ -21,6 +21,7 @@
 
 .field.relativeurl .input-group-append {
     z-index: 2;
+    flex: 0 0 auto;
 }
 
 .field.relativeurl .input-group-append:last-of-type {
@@ -50,6 +51,7 @@
 
 .field.relativeurl .edit-holder .BaseURL-link {
     margin-right: 6px;
+    flex: 0 0 auto;
 }
 
 .field.relativeurl .edit-holder .input-group {
