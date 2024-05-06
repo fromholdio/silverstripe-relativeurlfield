@@ -271,7 +271,8 @@ class RelativeURLField extends TextField
         $baseSiteTree = $this->getBaseSiteTree();
         $link = empty($baseSiteTree) ? $value : Controller::join_links($baseSiteTree->Link(), $value);
         $siteTree = SiteTree::get_by_link($link);
-        $hasCollision = !is_null($siteTree);
+        // check that link matches, because SiteTree::get_by_link() might return parent page + "action" if child page doesn't exist
+        $hasCollision = !is_null($siteTree) && $siteTree->Link() == $link;
         $this->extend('updateHasSiteTreeCollision', $hasCollision, $value);
         return $hasCollision;
     }
