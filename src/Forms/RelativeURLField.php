@@ -2,12 +2,16 @@
 
 namespace Fromholdio\RelativeURLField\Forms;
 
+use Fromholdio\ConfiguredMultisites\Multisites;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Control\Controller;
 use SilverStripe\Control\Director;
 use SilverStripe\Control\HTTPRequest;
+use SilverStripe\Core\Manifest\ModuleLoader;
+use SilverStripe\Dev\Debug;
 use SilverStripe\Forms\ReadonlyField;
 use SilverStripe\Forms\TextField;
+use SilverStripe\ORM\DataObject;
 use SilverStripe\View\Parsers\URLSegmentFilter;
 use SilverStripe\View\Requirements;
 
@@ -34,7 +38,7 @@ class RelativeURLField extends TextField
         if (empty($value)) {
             return $this->httpError(
                 405,
-                _t(__CLASS__ .'.EMPTY', 'Please enter a URL or click cancel')
+                _t(__CLASS__ . '.EMPTY', 'Please enter a URL or click cancel')
             );
         }
 
@@ -110,8 +114,7 @@ class RelativeURLField extends TextField
                 $filteredParts[] = $filter->filter($valuePart);
             }
             $value = implode('/', $filteredParts);
-        }
-        else {
+        } else {
             $value = $filter->filter($value);
         }
 
@@ -270,13 +273,52 @@ class RelativeURLField extends TextField
         }
         $baseSiteTree = $this->getBaseSiteTree();
         $link = empty($baseSiteTree) ? $value : Controller::join_links($baseSiteTree->Link(), $value);
-        $siteTree = SiteTree::get_by_link($link);
-        // check that link matches, because SiteTree::get_by_link() might return parent page + "action" if child page doesn't exist
-        $hasCollision = !is_null($siteTree) && $siteTree->Link() == $link;
+
+        $rootID = ($multisitesClass = $this->getMultisitesClassName())
+            ? $multisitesClass::inst()->getCurrentSiteId()
+            : 0;
+
+        $parts = preg_split('|/+|', $link ?? '');
+        $URLSegment = array_shift($parts);
+        $siteTree = SiteTree::get()->filter([
+            'URLSegment' => $URLSegment,
+            'ParentID' => $rootID
+        ])->first();
+
+        if ($siteTree && SiteTree::config()->get('nested_urls') && count($parts ?? [])) {
+            foreach ($parts as $segment) {
+                $next = SiteTree::get()->filter([
+                    'URLSegment' => $segment,
+                    'ParentID' => $siteTree->ID
+                ])->first();
+
+                if (!$next) {
+                    break;
+                }
+
+                $siteTree->destroy();
+                $siteTree = $next;
+            }
+        }
+
+        // check that link matches, because SiteTree::get_by_link() might return parent page + "action"
+        $hasCollision = $siteTree && trim(Director::makeRelative($siteTree->Link()), '/') == trim($link, '/');
+
         $this->extend('updateHasSiteTreeCollision', $hasCollision, $value);
         return $hasCollision;
     }
 
+    public function getMultisitesClassName(): ?string
+    {
+        $manifest = ModuleLoader::inst()->getManifest();
+        if ($manifest->moduleExists('symbiote/silverstripe-multisites')) {
+            return \Symbiote\Multisites\Multisites::class;
+        }
+        if ($manifest->moduleExists('fromholdio/silverstripe-configured-multisites')) {
+            return \Fromholdio\ConfiguredMultisites\Multisites::class;
+        }
+        return null;
+    }
 
     public function Field($properties = [])
     {
