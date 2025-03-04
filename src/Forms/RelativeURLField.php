@@ -18,6 +18,7 @@ class RelativeURLField extends TextField
     protected ?SiteTree $baseSiteTree = null;
     protected bool $isQueryStringAllowed = false;
     protected bool $isFullPathAllowed = true;
+    protected bool $isCleanValueEnabled = true;
     protected ?string $defaultValue = null;
     protected array $collisionChecks = ['sitetree'];
     protected ?string $helpText = 'Special characters are automatically converted or removed.';
@@ -94,29 +95,31 @@ class RelativeURLField extends TextField
             return null;
         }
 
-        $value = ltrim($value, '/');
-        $valueParts = explode('#', $value);
-        $value = $valueParts[0];
+        if ($this->getIsCleanValueEnabled()) {
+            $value = ltrim($value, '/');
+            $valueParts = explode('#', $value);
+            $value = $valueParts[0];
 
-        $valueParts = explode('?', $value);
-        $value = $valueParts[0];
-        $queryString = $valueParts[1] ?? null;
+            $valueParts = explode('?', $value);
+            $value = $valueParts[0];
+            $queryString = $valueParts[1] ?? null;
 
-        $filter = URLSegmentFilter::create();
+            $filter = URLSegmentFilter::create();
 
-        if ($this->getIsFullPathAllowed()) {
-            $valueParts = array_filter(explode('/', $value));
-            $filteredParts = [];
-            foreach ($valueParts as $valuePart) {
-                $filteredParts[] = $filter->filter($valuePart);
+            if ($this->getIsFullPathAllowed()) {
+                $valueParts = array_filter(explode('/', $value));
+                $filteredParts = [];
+                foreach ($valueParts as $valuePart) {
+                    $filteredParts[] = $filter->filter($valuePart);
+                }
+                $value = implode('/', $filteredParts);
+            } else {
+                $value = $filter->filter($value);
             }
-            $value = implode('/', $filteredParts);
-        } else {
-            $value = $filter->filter($value);
-        }
 
-        if ($this->getIsQueryStringAllowed() && !empty($queryString)) {
-            $value .= '?' . $queryString;
+            if ($this->getIsQueryStringAllowed() && !empty($queryString)) {
+                $value .= '?' . $queryString;
+            }
         }
 
         $this->extend('updateCleanValue', $value);
@@ -199,6 +202,17 @@ class RelativeURLField extends TextField
     public function getIsFullPathAllowed(): bool
     {
         return $this->isFullPathAllowed;
+    }
+
+    public function setIsCleanValueEnabled(bool $isCleanValueEnabled): self
+    {
+        $this->isCleanValueEnabled = $isCleanValueEnabled;
+        return $this;
+    }
+
+    public function getIsCleanValueEnabled(): bool
+    {
+        return $this->isCleanValueEnabled;
     }
 
     public function setHelpText(?string $string): self
