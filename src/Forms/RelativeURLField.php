@@ -95,15 +95,15 @@ class RelativeURLField extends TextField
             return null;
         }
 
+        $value = ltrim($value, '/');
+        $valueParts = explode('#', $value);
+        $value = $valueParts[0];
+
+        $valueParts = explode('?', $value);
+        $value = $valueParts[0];
+        $queryString = $valueParts[1] ?? null;
+
         if ($this->getIsCleanValueEnabled()) {
-            $value = ltrim($value, '/');
-            $valueParts = explode('#', $value);
-            $value = $valueParts[0];
-
-            $valueParts = explode('?', $value);
-            $value = $valueParts[0];
-            $queryString = $valueParts[1] ?? null;
-
             $filter = URLSegmentFilter::create();
 
             if ($this->getIsFullPathAllowed()) {
@@ -116,10 +116,17 @@ class RelativeURLField extends TextField
             } else {
                 $value = $filter->filter($value);
             }
-
-            if ($this->getIsQueryStringAllowed() && !empty($queryString)) {
-                $value .= '?' . $queryString;
+        } else {
+            $valueParts = explode('/', rtrim($value, '/'));
+            if ($this->getIsFullPathAllowed()) {
+                $value = implode('/', $valueParts);
+            } else {
+                $value = array_pop($valueParts);
             }
+        }
+
+        if ($this->getIsQueryStringAllowed() && !empty($queryString)) {
+            $value .= '?' . $queryString;
         }
 
         $this->extend('updateCleanValue', $value);
