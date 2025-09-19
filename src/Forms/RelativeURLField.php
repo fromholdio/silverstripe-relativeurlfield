@@ -184,7 +184,7 @@ class RelativeURLField extends TextField
     {
         return Controller::join_links(
             $this->getBaseURL(),
-            $this->Value()
+            $this->getValue()
         );
     }
 
