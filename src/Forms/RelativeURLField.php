@@ -78,9 +78,9 @@ class RelativeURLField extends TextField
     }
 
 
-    public function Value(): string
+    public function getValue(): string
     {
-        return rawurldecode(parent::Value() ?? '');
+        return rawurldecode(parent::getValue() ?? '');
     }
 
     public function setSubmittedValue($value, $data = null): self
