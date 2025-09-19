@@ -1,5 +1,7 @@
 # silverstripe-relativeurlfield
 
+Upgraded for Silverstripe v6.x. See tags/branch 1.x for SS v5.x compatibility.
+
 Similar to SiteTreeURLSegmentField except:
 - No `SiteTree` dependency - use anywhere
 - Set a `BaseURL` (or `Director::absoluteBaseURL` as fallback)
@@ -8,8 +10,6 @@ Similar to SiteTreeURLSegmentField except:
 - Based on URL slug (or full path), collision checks are performed, and `-n` counter added to value
 - By default, using BaseURL and supplied URL slug/path, collision with pages in site tree is checked
 - Base URL is always displayed to user, including when entering relative url path, so that the user sees the context and understands which part of the url they should be entering
-
-Only tested in SS5 but should work in SS4 too.
 
 ### Straight-forward to use:
 
